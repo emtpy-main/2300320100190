@@ -1,0 +1,80 @@
+# Node
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log
+
+# Environment
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+client/build/
+server/dist/
+public/build/
+
+# Coverage reports
+coverage/
+coverage-final.json
+lcov-report/
+
+# Logs
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime data
+tmp/
+temp/
+uploads/
+cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Testing
+jest.config.js
+/nyc_output/
+
+# Misc
+*.tgz
+*.gz
+*.zip
+*.sqlite
+*.db
+
+# Docker
+docker-compose.override.yml
+.env.docker
+
+# MongoDB local DB
+data/db/
+
+# Optional caches and framework artifacts
+.next/
+.cache/
+.parcel-cache/
+.turbo/
+
+# PM2
+pm2.log
+
