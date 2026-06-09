@@ -1,7 +1,40 @@
 const axios = require('axios');
 
 const LOGGING_API_URL = 'http://4.224.186.213/evaluation-service/logs';
-const BEARER_TOKEN = process.env.LOGGING_API_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJwcmF0aWsuMjNiMDEwMTE5N0BhYmVzLmFjLmluIiwiZXhwIjoxNzgwOTg4MDEzLCJpYXQiOjE3ODA5ODcxMTMsImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiJhMTJmMWIwZS03Mjc4LTQ4NWItOGU1OC01ZTlhZGJhN2FkMjkiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJwcmF0aWsgc2luZ2giLCJzdWIiOiI2NzM1OGRjZS1hNDI4LTQwOGEtOGM3Ni02NDliMWI1NzIzOWIifSwiZW1haWwiOiJwcmF0aWsuMjNiMDEwMTE5N0BhYmVzLmFjLmluIiwibmFtZSI6InByYXRpayBzaW5naCIsInJvbGxObyI6IjIzMDAzMjAxMDAxOTAiLCJhY2Nlc3NDb2RlIjoiY1h1cWh0IiwiY2xpZW50SUQiOiI2NzM1OGRjZS1hNDI4LTQwOGEtOGM3Ni02NDliMWI1NzIzOWIiLCJjbGllbnRTZWNyZXQiOiJodnVlQ21kSE1FZHJTSGhtIn0.fiyzE2rG63F-2kg8_Qb0ZAdEWYfwcHHhd_Md0L1RKuY';
+const BEARER_TOKEN = process.env.LOGGING_API_TOKEN;
+
+let cachedToken = null;
+
+async function getAuthToken() {
+  if (cachedToken) return cachedToken;
+  try {
+    const response = await axios.post('http://4.224.186.213/evaluation-service/auth', {
+      email: "pratik.23b0101197@abes.ac.in",
+      name: "pratik singh",
+      rollNo: "2300320100190",
+      accessCode: "cXuqht",
+      clientID: "67358dce-a428-408a-8c76-649b1b57239b",
+      clientSecret: "hvueCmdHMEdrSHhm"
+    });
+    
+    let token = null;
+    if (response.data) {
+      if (typeof response.data === "string") {
+        token = response.data;
+      } else {
+        token = response.data.token || response.data.access_token;
+      }
+    }
+    if (!token) {
+      throw new Error("No token received in auth response");
+    }
+    cachedToken = token;
+    return cachedToken;
+  } catch (error) {
+    console.error("Logger authentication failed:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 const STACKS = ['backend', 'frontend'];
 const LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'];
@@ -44,19 +77,26 @@ async function log(stack, level, packageName, message) {
     throw new Error('Invalid message: message must be a non-empty string.');
   }
 
-  if (!BEARER_TOKEN) {
+  const token = BEARER_TOKEN || await getAuthToken();
+
+  if (!token) {
     throw new Error('Missing Bearer token. ');
+  }
+
+  let sanitizedMessage = message;
+  if (sanitizedMessage.length > 48) {
+    sanitizedMessage = sanitizedMessage.slice(0, 45) + "...";
   }
 
   const payload = {
     stack,
     level,
     package: packageName,
-    message,
+    message: sanitizedMessage,
   };
 
   const headers = {
-    Authorization: `Bearer ${BEARER_TOKEN}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 
@@ -64,7 +104,7 @@ async function log(stack, level, packageName, message) {
     const response = await axios.post(LOGGING_API_URL, payload, { headers });
     return response.data;
   } catch (error) {
-    const apiError = error.response ? error.response.data : error.message;
+    const apiError = error.response ? JSON.stringify(error.response.data) : error.message;
     throw new Error(`Failed to send log: ${apiError}`);
   }
 }
