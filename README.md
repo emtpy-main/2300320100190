@@ -1,4 +1,4 @@
-# AffordMed Vehicle & Notifications Monorepo
+# Vehicle & Notifications Monorepo
 
 This workspace houses the notification services and the optimization-driven scheduler services for vehicle maintenance.
 
